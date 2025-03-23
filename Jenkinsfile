@@ -1,46 +1,29 @@
 pipeline {
     agent any
-    
-    environment {
-        IMAGE_NAME = 'my-java-app'
-        IMAGE_TAG = 'latest'
-        DOCKER_REGISTRY = 'my-docker-registry'  // Change as needed
-    }
-    
+
     stages {
-        stage('Checkout Code') {
+        stage('Clone') {
             steps {
-                git 'https://github.com/fntita81/java-unit-tests-gradle.git' // Change to your repo
+                git url: 'https://github.com/fntita81/java-unit-tests-gradle.git'
             }
         }
-        
+
         stage('Build') {
             steps {
                 sh './gradlew clean build'
             }
         }
-        
+
         stage('Test') {
             steps {
                 sh './gradlew test'
             }
         }
-        
-        stage('Build Docker Image') {
+
+        stage('Archive') {
             steps {
-                script {
-                    sh "docker build -t $IMAGE_NAME:$IMAGE_TAG ."
-                }
+                archiveArtifacts artifacts: 'build/libs/*.jar', fingerprint: true
             }
         }
-        
-        stage('Push Docker Image') {
-            steps {
-                script {
-                    sh "docker tag $IMAGE_NAME:$IMAGE_TAG $DOCKER_REGISTRY/$IMAGE_NAME:$IMAGE_TAG"
-                    sh "docker push $DOCKER_REGISTRY/$IMAGE_NAME:$IMAGE_TAG"
-                }
-            }
-        }
-    }
-}
+    } // <-- closes stages
+} // <-- closes pipeline
